@@ -1,0 +1,9 @@
+venv
+.idea
+*pycache*
+bin
+**/*release
+**/*.swp
+**/*.swo
+
+.DS_Store
