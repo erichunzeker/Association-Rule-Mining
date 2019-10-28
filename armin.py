@@ -1,22 +1,29 @@
 import os
 import csv
+import sys
+
 import pandas as pd
 
-file_in = input('Enter name of input file: ')
+
+def main():
+    args = sys.argv[1:]
+    if not args:
+        print("improper args")
+        print("python armin.py *input* *output* *sp* *conf*")
+        sys.exit(1)
+    file_in = args[0]
+    file_out = args[1]
+
+    # need pseudo - header with all of the items
+
+    if os.path.isfile(os.path.join(os.getcwd(), file_in)):
+        f = os.path.join(os.getcwd(), file_in)
+        df = pd.read_csv(f, error_bad_lines=False, warn_bad_lines=False, skipinitialspace=True, header=None)
+        df = pd.DataFrame(df, columns=['transaction'])
+        print(df.head())
+
+        df.to_csv(file_out)
 
 
-if os.path.isfile(os.path.join(os.getcwd(), file_in)):
-    f = os.path.join(os.getcwd(), file_in)
-    df = pd.read_csv(f, error_bad_lines=False, warn_bad_lines=False, skipinitialspace=True)
-    print(df.head())
-
-# if os.path.isfile(os.path.join(os.getcwd(), file_in)):
-#     # use csv lib to convert to python dictreader
-#     file = csv.DictReader(open(file_in))
-#     # open csv, set dilimter to new line, read and print line by line for part 5
-#     with open(file_in, 'r') as csvfile:
-#         reader = csv.reader(csvfile, delimiter='\n', quotechar='|')
-#         for row in reader:
-#             r = ','.join(row).split(',')
-#             r = [i.strip() for i in r]
-#             print(r)
+if __name__ == '__main__':
+    main()
