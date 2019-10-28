@@ -16,6 +16,8 @@ def main():
         sys.exit(1)
     file_in = args[0]
     file_out = args[1]
+    min_support_percentage = float(args[2])
+    min_confidence = float(args[3])
 
     # need pseudo - header with all of the items
 
@@ -48,6 +50,7 @@ def main():
         items = list(items)
         items.sort()
         cfi = []
+        support_index = []
         # items.insert(0, "trans_id")
 
         for i in range(len(items) + 1):
@@ -64,18 +67,30 @@ def main():
                     if j.issubset(temp):
                         count += 1
                 print(count/len(basket))
-                if count/len(basket) >= 0.5:
+                support = count/len(basket)
+                if support >= min_support_percentage:
                     if len(j) == 1:
                         j = list(j)
-                        cfi.append(list(j[0]))
+                        cfi.append(list((j[0])))
+                        support_index.append(support)
                     else:
                         j = list(j)
+                        j.sort()
                         cfi.append(j)
-                elif count/len(basket) < 0.5 and len(j) == 1:
+                        support_index.append(support)
+                elif count/len(basket) < min_support_percentage and len(j) == 1:
                     j = list(j)
                     items.remove(j[0])
         print(cfi)
+        print(support_index)
 
+        with open('test_out.csv', "w", newline="") as f:
+            for i in range(len(cfi)):
+                row = csv.writer(f)
+                temp = cfi[i]
+                temp.insert(0, 'S')
+                temp.insert(1, '%.4f' % support_index[i])
+                row.writerow(temp)
 
         #
         # df = pd.read_csv(f, names=items, error_bad_lines=False, warn_bad_lines=False, skipinitialspace=True, header=None)
