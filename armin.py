@@ -6,16 +6,16 @@ from itertools import combinations
 
 def main():
     args = sys.argv[1:]
+
     if not args:
         print("improper args")
         print("python armin.py *input* *output* *sp* *conf*")
         sys.exit(1)
+
     file_in = args[0]
     file_out = args[1]
     min_support_percentage = float(args[2])
     min_confidence = float(args[3])
-
-    # need pseudo - header with all of the items
 
     if os.path.isfile(os.path.join(os.getcwd(), file_in)):
         items = set(())
@@ -54,7 +54,7 @@ def main():
 
             # number of unique items * length of subset
             for c in comb:
-                # do something to make j smaller by removing impossible subsets
+                # todo: do something to make c smaller by removing impossible subsets
                 c = set(c)
                 count = 0
 
@@ -88,6 +88,7 @@ def main():
                 temp.insert(1, '%.4f' % support_index[i])
                 row.writerow(temp)
 
+            # subsets (get all subsets that made the min_support cut)
             ss = vfi.copy()
             ss = [x[2:] for x in ss]
 
@@ -95,6 +96,7 @@ def main():
             # make lookup table of subset: support_percent
             unions = {(str(x[2:])): x[1] for x in unions}
 
+            # only two side of confidence, so only make combinations size 2
             for c in combinations(ss, 2):
                 c = list(c)
                 first = set(c[0])
@@ -104,6 +106,7 @@ def main():
                 u = list(u)
                 u.sort()
 
+                # index unions with the union of the two sides, needed for algorithm's equation
                 if str(u) in unions:
                     union_support_percent = float(unions[str(u)])
                     first = list(first)
@@ -113,9 +116,7 @@ def main():
 
                     a = set(first)
                     b = set(second)
-                    if len(a.intersection(b)) > 0:
-                        pass
-                    else:
+                    if len(a.intersection(b)) == 0:
                         row = csv.writer(f, quoting=csv.QUOTE_NONE, quotechar=None, escapechar='\\')
 
                         first_support_percent = float(unions[str(first)])
@@ -131,8 +132,6 @@ def main():
                         if flipped_conf >= min_confidence:
                             row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
                                          [str('%.4f' % flipped_conf)] + second + ['\'=>\''] + first)
-                else:
-                    pass
 
 
 if __name__ == '__main__':
