@@ -15,7 +15,6 @@ def main():
 
     items = set(())
     basket = []
-    lookup = []
     vfi = []
     support_index = []
 
@@ -25,14 +24,9 @@ def main():
         with open(args[0], 'r') as csvfile:
             reader = csv.reader(csvfile, delimiter='\n', quotechar='|')
             for row in reader:
-                r = ','.join(row).split(',')
-                index = r[0]
-                r = r[1:]
+                r = ','.join(row).split(',')[1:]
                 d = [i.strip() for i in r]
-                lookup.append(index)
                 r = {i.strip() for i in r}
-                if d is None:
-                    d = []
                 basket.append(d)
                 items = items.union(r)
     items = list(items)
@@ -87,10 +81,10 @@ def main():
         unions = {(str(x[2:])): x[1] for x in unions}
 
         # only two side of confidence (a => b), so only make combinations size 2
-        for c in combinations(ss, 2):
-            c = list(c)
-            a = set(c[0])
-            b = set(c[1])
+        for pair in combinations(ss, 2):
+            pair = list(pair)
+            a = set(pair[0])
+            b = set(pair[1])
 
             u = a.union(b)
             u = list(u)
