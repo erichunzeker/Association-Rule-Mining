@@ -6,132 +6,121 @@ from itertools import combinations
 
 def main():
     args = sys.argv[1:]
-
-    if not args:
-        print("improper args")
-        print("python armin.py *input* *output* *sp* *conf*")
+    if not args or len(args) < 4:
+        print("improper args - use `python armin.py *input* *output* *sp* *conf*`")
         sys.exit(1)
 
-    file_in = args[0]
-    file_out = args[1]
     min_support_percentage = float(args[2])
     min_confidence = float(args[3])
 
-    if os.path.isfile(os.path.join(os.getcwd(), file_in)):
-        items = set(())
-        basket = []
-        lookup = []
-        vfi = []
-        support_index = []
+    items = set(())
+    basket = []
+    lookup = []
+    vfi = []
+    support_index = []
 
-        # go through input csv and gather unique items and create a nested list of transactions
-        if os.path.isfile(os.path.join(os.getcwd(), file_in)):
-            with open(file_in, 'r') as csvfile:
-                reader = csv.reader(csvfile, delimiter='\n', quotechar='|')
-                for row in reader:
-                    r = ','.join(row).split(',')
-                    index = r[0]
-                    r = r[1:]
-                    d = [i.strip() for i in r]
-                    lookup.append(index)
-                    r = {i.strip() for i in r}
-                    if d is None:
-                        d = []
-                    basket.append(d)
-                    items = items.union(r)
+    # go through input csv and gather unique items and create a nested list of transactions
+    # items is set of unique item names; basket is a list of lists - baskets for each transaction
+    if os.path.isfile(os.path.join(os.getcwd(), args[0])):
+        with open(args[0], 'r') as csvfile:
+            reader = csv.reader(csvfile, delimiter='\n', quotechar='|')
+            for row in reader:
+                r = ','.join(row).split(',')
+                index = r[0]
+                r = r[1:]
+                d = [i.strip() for i in r]
+                lookup.append(index)
+                r = {i.strip() for i in r}
+                if d is None:
+                    d = []
+                basket.append(d)
+                items = items.union(r)
+    items = list(items)
+    items.sort()
 
-        # items is set of unique item names
-        # basket is a list of lists - baskets for each transaction
+    # number of unique items
+    for i in range(len(items) + 1):
+        # comb is every combination of possible subsets
+        comb = combinations(items, i + 1)
 
-        items = list(items)
-        items.sort()
+        # runtime: number of unique items * length of subset
+        for c in comb:
+            # todo: do something to make c smaller by removing impossible subsets
+            c = set(c)
+            count = 0
+            # runtime: number of transactions
+            for a in basket:
+                a = set(a)
+                # if current combination/subset of unique items is in current transaction
+                if c.issubset(a):
+                    count += 1
 
-        # number of unique items
-        for i in range(len(items) + 1):
+            support = count / len(basket)
 
-            # comb is every combination of possible subsets
-            comb = combinations(items, i + 1)
-
-            # number of unique items * length of subset
-            for c in comb:
-                # todo: do something to make c smaller by removing impossible subsets
-                c = set(c)
-                count = 0
-
-                # number of transactions
-                for a in basket:
-                    temp = set(a)
-                    # if current combination/subset of unique items is in current transaction
-                    if c.issubset(temp):
-                        count += 1
-
-                support = count / len(basket)
-
-                if support >= min_support_percentage:
-                    # make accepted subset into list, sort it, and include it in vfi
-                    c = list(c)
-                    c.sort()
-                    vfi.append(c)
-                    # include the support percentage that it got through with in an adjacent array
-                    support_index.append(support)
-
-                # if it's a single item and it's not in vfi, don't allow it in further combinations
-                elif len(c) == 1 and support < min_support_percentage:
-                    c = list(c)
-                    items.remove(c[0])
-
-        with open(file_out, "w", newline="") as f:
-            for i in range(len(vfi)):
-                row = csv.writer(f)
-                temp = vfi[i]
-                temp.insert(0, 'S')
-                temp.insert(1, '%.4f' % support_index[i])
-                row.writerow(temp)
-
-            # subsets (get all subsets that made the min_support cut)
-            ss = vfi.copy()
-            ss = [x[2:] for x in ss]
-
-            unions = vfi.copy()
-            # make lookup table of subset: support_percent
-            unions = {(str(x[2:])): x[1] for x in unions}
-
-            # only two side of confidence, so only make combinations size 2
-            for c in combinations(ss, 2):
+            if support >= min_support_percentage:
+                # make accepted subset into list, sort it, and include it in vfi
                 c = list(c)
-                first = set(c[0])
-                second = set(c[1])
+                c.sort()
+                vfi.append(c)
+                # include the support percentage that it got through with in an adjacent array
+                support_index.append(support)
 
-                u = first.union(second)
-                u = list(u)
-                u.sort()
+            # if it's a single item and it's not in vfi, don't allow it in further combinations
+            elif len(c) == 1 and support < min_support_percentage:
+                c = list(c)
+                items.remove(c[0])
 
-                # index unions with the union of the two sides, needed for algorithm's equation
-                if str(u) in unions:
-                    union_support_percent = float(unions[str(u)])
-                    first = list(first)
-                    first.sort()
-                    second = list(second)
-                    second.sort()
+    with open(args[1], "w", newline="") as f:
+        for i in range(len(vfi)):
+            row = csv.writer(f)
+            temp = vfi[i]
+            temp.insert(0, 'S')
+            temp.insert(1, '%.4f' % support_index[i])
+            row.writerow(temp)
 
-                    a = set(first)
-                    b = set(second)
-                    if len(a.intersection(b)) == 0:
-                        row = csv.writer(f, quoting=csv.QUOTE_NONE, quotechar=None, escapechar='\\')
+        # subsets (get all subsets that made the min_support cut)
+        ss = vfi.copy()
+        ss = [x[2:] for x in ss]
 
-                        first_support_percent = float(unions[str(first)])
-                        flipped_support_percent = float(unions[str(second)])
+        # make lookup table of subset & support_percent (key: str vrsn of subset, val: support_percent)
+        unions = vfi.copy()
+        unions = {(str(x[2:])): x[1] for x in unions}
 
-                        conf = union_support_percent / first_support_percent
-                        flipped_conf = union_support_percent / flipped_support_percent
+        # only two side of confidence (a => b), so only make combinations size 2
+        for c in combinations(ss, 2):
+            c = list(c)
+            a = set(c[0])
+            b = set(c[1])
 
-                        if conf >= min_confidence:
-                            row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
-                                         [str('%.4f' % conf)] + first + ['\'=>\''] + second)
+            u = a.union(b)
+            u = list(u)
+            u.sort()
 
-                        if flipped_conf >= min_confidence:
-                            row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
-                                         [str('%.4f' % flipped_conf)] + second + ['\'=>\''] + first)
+            # index unions with the union of the two sides, needed for algorithm's equation
+            if str(u) in unions:
+                union_support_percent = float(unions[str(u)])
+                first = list(a)
+                first.sort()
+
+                second = list(b)
+                second.sort()
+
+                if len(a.intersection(b)) == 0:
+                    row = csv.writer(f, quoting=csv.QUOTE_NONE, quotechar=None, escapechar='\\')
+
+                    first_support_percent = float(unions[str(first)])
+                    flipped_support_percent = float(unions[str(second)])
+
+                    conf = union_support_percent / first_support_percent
+                    flipped_conf = union_support_percent / flipped_support_percent
+
+                    if conf >= min_confidence:
+                        row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
+                                     [str('%.4f' % conf)] + first + ['\'=>\''] + second)
+
+                    if flipped_conf >= min_confidence:
+                        row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
+                                     [str('%.4f' % flipped_conf)] + second + ['\'=>\''] + first)
 
 
 if __name__ == '__main__':
