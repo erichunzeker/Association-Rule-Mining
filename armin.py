@@ -56,32 +56,32 @@ def main():
             comb = combinations(items, i + 1)
 
             # number of unique items * length of subset
-            for j in comb:
+            for c in comb:
                 # do something to make j smaller by removing impossible subsets
-                j = set(j)
+                c = set(c)
                 count = 0
 
                 # number of transactions
                 for a in basket:
                     temp = set(a)
                     # if current combination/subset of unique items is in current transaction
-                    if j.issubset(temp):
+                    if c.issubset(temp):
                         count += 1
 
                 support = count/len(basket)
 
                 if support >= min_support_percentage:
                     # make accepted subset into list, sort it, and include it in cfi
-                    j = list(j)
-                    j.sort()
-                    cfi.append(j)
+                    c = list(c)
+                    c.sort()
+                    cfi.append(c)
                     # include the support percentage that it got through with in an adjacent array
                     support_index.append(support)
 
                 # if it's a single item and it's not in cfi, don't allow it in further combinations
-                elif len(j) == 1 and support < min_support_percentage:
-                    j = list(j)
-                    items.remove(j[0])
+                elif len(c) == 1 and support < min_support_percentage:
+                    c = list(c)
+                    items.remove(c[0])
 
         with open(file_out, "w", newline="") as f:
             for i in range(len(cfi)):
