@@ -25,9 +25,10 @@ def main():
         items = set(())
         basket = []
         lookup = []
-        cfi = []
+        vfi = []
         support_index = []
 
+        # go through input csv and gather unique items and create a nested list of transactions
         if os.path.isfile(os.path.join(os.getcwd(), file_in)):
             with open(file_in, 'r') as csvfile:
                 reader = csv.reader(csvfile, delimiter='\n', quotechar='|')
@@ -71,25 +72,56 @@ def main():
                 support = count/len(basket)
 
                 if support >= min_support_percentage:
-                    # make accepted subset into list, sort it, and include it in cfi
+                    # make accepted subset into list, sort it, and include it in vfi
                     c = list(c)
                     c.sort()
-                    cfi.append(c)
+                    vfi.append(c)
                     # include the support percentage that it got through with in an adjacent array
                     support_index.append(support)
 
-                # if it's a single item and it's not in cfi, don't allow it in further combinations
+                # if it's a single item and it's not in vfi, don't allow it in further combinations
                 elif len(c) == 1 and support < min_support_percentage:
                     c = list(c)
                     items.remove(c[0])
 
         with open(file_out, "w", newline="") as f:
-            for i in range(len(cfi)):
+            for i in range(len(vfi)):
                 row = csv.writer(f)
-                temp = cfi[i]
+                temp = vfi[i]
                 temp.insert(0, 'S')
                 temp.insert(1, '%.4f' % support_index[i])
                 row.writerow(temp)
+
+            ss = vfi.copy()
+            ss = [x[2:] for x in ss]
+
+            unions = vfi.copy()
+            # make lookup table of subset: support_percent
+            unions = {(str(x[2:])): x[1] for x in unions}
+            print(unions)
+
+            for c in combinations(ss, 2):
+                c = list(c)
+                # a => b
+                # union over a
+                first = set(c[0])
+                second = set(c[1])
+
+                u = first.union(second)
+                u = list(u)
+                u.sort()
+
+                if str(u) in unions:
+                    u = unions[str(u)]
+                    print(first)
+                    print(second)
+                    print(u)
+                    print(c)
+                else:
+                    pass
+
+
+
 
 
 if __name__ == '__main__':
