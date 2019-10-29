@@ -22,12 +22,11 @@ def main():
     # need pseudo - header with all of the items
 
     if os.path.isfile(os.path.join(os.getcwd(), file_in)):
-        f = os.path.join(os.getcwd(), file_in)
         items = set(())
         basket = []
         lookup = []
-
-        # runtime
+        cfi = []
+        support_index = []
 
         if os.path.isfile(os.path.join(os.getcwd(), file_in)):
             with open(file_in, 'r') as csvfile:
@@ -49,56 +48,48 @@ def main():
 
         items = list(items)
         items.sort()
-        cfi = []
-        support_index = []
-        # items.insert(0, "trans_id")
 
+        # number of unique items
         for i in range(len(items) + 1):
-            print(cfi)
+
+            # comb is every combination of possible subsets
             comb = combinations(items, i + 1)
-            # remove shit from combinations
-            # i guess that happens with -items
+
+            # number of unique items * length of subset
             for j in comb:
+                # do something to make j smaller by removing impossible subsets
                 j = set(j)
-                print(j)
                 count = 0
+
+                # number of transactions
                 for a in basket:
                     temp = set(a)
+                    # if current combination/subset of unique items is in current transaction
                     if j.issubset(temp):
                         count += 1
-                print(count/len(basket))
+
                 support = count/len(basket)
+
                 if support >= min_support_percentage:
-                    if len(j) == 1:
-                        j = list(j)
-                        cfi.append(list((j[0])))
-                        support_index.append(support)
-                    else:
-                        j = list(j)
-                        j.sort()
-                        cfi.append(j)
-                        support_index.append(support)
-                elif count/len(basket) < min_support_percentage and len(j) == 1:
+                    # make accepted subset into list, sort it, and include it in cfi
+                    j = list(j)
+                    j.sort()
+                    cfi.append(j)
+                    # include the support percentage that it got through with in an adjacent array
+                    support_index.append(support)
+
+                # if it's a single item and it's not in cfi, don't allow it in further combinations
+                elif len(j) == 1 and support < min_support_percentage:
                     j = list(j)
                     items.remove(j[0])
-        print(cfi)
-        print(support_index)
 
-        with open('test_out.csv', "w", newline="") as f:
+        with open(file_out, "w", newline="") as f:
             for i in range(len(cfi)):
                 row = csv.writer(f)
                 temp = cfi[i]
                 temp.insert(0, 'S')
                 temp.insert(1, '%.4f' % support_index[i])
                 row.writerow(temp)
-
-        #
-        # df = pd.read_csv(f, names=items, error_bad_lines=False, warn_bad_lines=False, skipinitialspace=True, header=None)
-        # df = pd.DataFrame(df)
-        # df.fillna(0, inplace=True)
-        # print(df.head(10))
-
-        # df.to_csv(file_out)
 
 
 if __name__ == '__main__':
