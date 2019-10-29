@@ -60,17 +60,17 @@ def main():
                 support_index.append(support)
 
             # if it's a single item and it's not in vfi, don't allow it in further combinations
-            elif len(c) == 1 and support < min_support_percentage:
+            elif len(c) == 1:
                 c = list(c)
                 items.remove(c[0])
 
     with open(args[1], "w", newline="") as f:
         for i in range(len(vfi)):
             row = csv.writer(f)
-            temp = vfi[i]
-            temp.insert(0, 'S')
-            temp.insert(1, '%.4f' % support_index[i])
-            row.writerow(temp)
+            line = vfi[i]
+            line.insert(0, 'S')
+            line.insert(1, '%.4f' % support_index[i])
+            row.writerow(line)
 
         # subsets (get all subsets that made the min_support cut)
         ss = vfi.copy()
