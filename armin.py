@@ -2,10 +2,6 @@ import os
 import csv
 import sys
 from itertools import combinations
-from itertools import permutations
-import math
-
-import pandas as pd
 
 
 def main():
@@ -69,7 +65,7 @@ def main():
                     if c.issubset(temp):
                         count += 1
 
-                support = count/len(basket)
+                support = count / len(basket)
 
                 if support >= min_support_percentage:
                     # make accepted subset into list, sort it, and include it in vfi
@@ -98,12 +94,9 @@ def main():
             unions = vfi.copy()
             # make lookup table of subset: support_percent
             unions = {(str(x[2:])): x[1] for x in unions}
-            print(unions)
 
             for c in combinations(ss, 2):
                 c = list(c)
-                # a => b
-                # union over a
                 first = set(c[0])
                 second = set(c[1])
 
@@ -112,16 +105,34 @@ def main():
                 u.sort()
 
                 if str(u) in unions:
-                    u = unions[str(u)]
-                    print(first)
-                    print(second)
-                    print(u)
-                    print(c)
+                    union_support_percent = float(unions[str(u)])
+                    first = list(first)
+                    first.sort()
+                    second = list(second)
+                    second.sort()
+
+                    a = set(first)
+                    b = set(second)
+                    if len(a.intersection(b)) > 0:
+                        pass
+                    else:
+                        row = csv.writer(f, quoting=csv.QUOTE_NONE, quotechar=None, escapechar='\\')
+
+                        first_support_percent = float(unions[str(first)])
+                        flipped_support_percent = float(unions[str(second)])
+
+                        conf = union_support_percent / first_support_percent
+                        flipped_conf = union_support_percent / flipped_support_percent
+
+                        if conf >= min_confidence:
+                            row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
+                                         [str('%.4f' % conf)] + first + ['\'=>\''] + second)
+
+                        if flipped_conf >= min_confidence:
+                            row.writerow(['R'] + [str('%.4f' % union_support_percent)] +
+                                         [str('%.4f' % flipped_conf)] + second + ['\'=>\''] + first)
                 else:
                     pass
-
-
-
 
 
 if __name__ == '__main__':
