@@ -7,5 +7,7 @@ bin
 **/*.swo
 
 *test.csv
+outputtest*.csv
+test1.csv
 
 .DS_Store

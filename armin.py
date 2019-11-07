@@ -39,7 +39,6 @@ def main():
 
         # runtime: number of unique items * length of subset
         for c in comb:
-            # todo: do something to make c smaller by removing impossible subsets
             c = set(c)
             count = 0
             # runtime: number of transactions
